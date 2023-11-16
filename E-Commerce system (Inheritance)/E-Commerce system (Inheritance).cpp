@@ -149,6 +149,16 @@ public:
         }
     }
 
+    Product* findProductByID(int productID) {
+        for (Product* product : products) {
+            if (product->getProductID() == productID) {
+                return product;
+            }
+        }
+        return nullptr; 
+    }
+
+
     ~Inventory() {
         for (Product* product : products) {
             delete product;
@@ -194,6 +204,13 @@ public:
         file.close();
     }
 
+    int generateID() {
+        int id = rand() % 10;
+        id = id * 1000 + rand();
+        return id;
+    }
+
+
     void readElectronics(std::istringstream& iss) {
         std::string name, brand, model;
         double price, powerConsumption;
@@ -208,7 +225,9 @@ public:
         std::getline(iss, model, ',');
         iss >> powerConsumption;
 
-        Electronics* e = new Electronics(0, name, price, quantityInStock, brand, model, powerConsumption);
+        int id = generateID();
+
+        Electronics* e = new Electronics(id, name, price, quantityInStock, brand, model, powerConsumption);
         inventory->addProduct(e);
     }
 
@@ -226,7 +245,9 @@ public:
         std::getline(iss, genre, ',');
         std::getline(iss, ISBN, ',');
 
-        Books* b = new Books(0, name, price, quantityInStock, author, genre, ISBN);
+        int id = generateID();
+
+        Books* b = new Books(id, name, price, quantityInStock, author, genre, ISBN);
         inventory->addProduct(b);
     }
 
@@ -244,10 +265,57 @@ public:
         std::getline(iss, color, ',');
         std::getline(iss, material, ',');
 
-        Clothing* c = new Clothing(0, name, price, quantityInStock, size, color, material);
+        int id = generateID();
+
+        Clothing* c = new Clothing(id, name, price, quantityInStock, size, color, material);
         inventory->addProduct(c);
     }
+};
 
+class Order {
+private:
+    int orderID;
+    std::string customer;
+    std::vector<Product*> products;
+    double totalCost;
+    std::string orderStatus;
+
+public:
+    Order(int id, const std::string& cust)
+        : orderID(id), customer(cust), totalCost(0.0), orderStatus("Created") {}
+
+    void addProduct(int productID, Inventory* inventory) {
+        Product* product = inventory->findProductByID(productID);
+        if (product != nullptr) {
+            products.push_back(product);
+            totalCost += product->getPrice();
+            inventory->subtractQuantity(productID, 1); 
+        }
+        else {
+            std::cout << "Product with ID " << productID << " not found." << std::endl;
+        }
+    }
+
+
+
+    double calculateTotalCost() {
+        return totalCost;
+    }
+
+    void changeOrderStatus(const std::string& status) {
+        orderStatus = status;
+    }
+
+    void displayOrderDetails() {
+        std::cout << "Order ID: " << orderID << std::endl;
+        std::cout << "Customer: " << customer << std::endl;
+        std::cout << "Total Cost: " << totalCost << std::endl;
+        std::cout << "Order Status: " << orderStatus << std::endl;
+        std::cout << "Products: " << std::endl;
+        for (Product* product : products) {
+            product->displayDetails();
+        }
+    }
 };
 
 
@@ -262,16 +330,23 @@ int main() {
 
     inventory.displayAllProducts();
 
-    inventory.subtractQuantity(1, 1); 
+    inventory.subtractQuantity(1, 1);
     std::cout << "-------" << std::endl;
     inventory.displayAllProducts();
 
     inventory.notifyLowStock();
 
-    ConfigReader reader("config.txt", &inventory); 
+    ConfigReader reader("config.txt", &inventory);
     reader.readConfigFile();
     std::cout << "-------" << std::endl;
     inventory.displayAllProducts();
 
+    Order order(1, "Customer1");
+    order.addProduct(1, &inventory);
+    order.addProduct(2, &inventory);
+    std::cout << "-------" << std::endl;
+    order.displayOrderDetails();
+
     return 0;
 }
+

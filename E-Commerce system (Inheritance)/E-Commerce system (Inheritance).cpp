@@ -21,10 +21,27 @@ public:
         return name;
     }
 
+    int getProductID() const {
+        return productID;
+    }
+
+    double getPrice() const {
+        return price;
+    }
+
     virtual void displayDetails() const = 0;
 
     double calculateTotalCost() {
         return price * quantityInStock;
+    }
+
+    void decreaseQuantity() {
+        if (quantityInStock > 0) {
+            quantityInStock--;
+        }
+        else {
+            std::cout << "No more stock for product " << name << std::endl;
+        }
     }
 };
 
@@ -40,6 +57,10 @@ public:
         : Product(id, n, p, q), brand(b), model(m), powerConsumption(pc) {}
 
     void displayDetails() const override {
+        std::cout << "Product ID: " << getProductID() << std::endl;
+        std::cout << "Name: " << getName() << std::endl;
+        std::cout << "Price: " << getPrice() << std::endl;
+        std::cout << "Quantity in Stock: " << getQuantityInStock() << std::endl;
         std::cout << "Power Consumption: " << powerConsumption << std::endl;
     }
 };
@@ -55,6 +76,10 @@ public:
         : Product(id, n, p, q), author(a), genre(g), ISBN(isbn) {}
 
     void displayDetails() const override {
+        std::cout << "Product ID: " << getProductID() << std::endl;
+        std::cout << "Name: " << getName() << std::endl;
+        std::cout << "Price: " << getPrice() << std::endl;
+        std::cout << "Quantity in Stock: " << getQuantityInStock() << std::endl;
         std::cout << "Author: " << author << std::endl;
     }
 };
@@ -70,6 +95,10 @@ public:
         : Product(id, n, p, q), size(s), color(c), material(m) {}
 
     void displayDetails() const override {
+        std::cout << "Product ID: " << getProductID() << std::endl;
+        std::cout << "Name: " << getName() << std::endl;
+        std::cout << "Price: " << getPrice() << std::endl;
+        std::cout << "Quantity in Stock: " << getQuantityInStock() << std::endl;
         std::cout << "Size: " << size << std::endl;
     }
 };
@@ -87,7 +116,12 @@ public:
         products.push_back(product);
     }
 
-    void subtractQuantity(Product* product, int quantity) {
+    void subtractQuantity(int productID, int quantity) {
+        for (Product* product : products) {
+            if (product->getProductID() == productID) {
+                product->decreaseQuantity();
+            }
+        }
     }
 
     void notifyLowStock() {
@@ -117,5 +151,25 @@ public:
 
 
 int main() {
+    Electronics* e1 = new Electronics(1, "TV", 500.0, 3, "Samsung", "Model1", 100.0);
+    Electronics* e2 = new Electronics(2, "Fridge", 1000.0, 5, "LG", "Model2", 200.0);
+
+    Inventory* inventory = new Inventory(2);
+
+    inventory->addProduct(e1);
+    inventory->addProduct(e2);
+
+    inventory->displayAllProducts();
+
+    inventory->subtractQuantity(1, 1); 
+    std::cout << "-------" << std::endl;
+    inventory->displayAllProducts();
+
+    inventory->notifyLowStock();
+
+    delete e1;
+    delete e2;
+    delete inventory;
+
     return 0;
 }

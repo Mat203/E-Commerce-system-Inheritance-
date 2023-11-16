@@ -1,6 +1,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <fstream>
+#include <sstream>
 
 
 class Product {
@@ -103,10 +105,9 @@ public:
     }
 };
 
-
 class Inventory {
 private:
-    std::vector<Product*> products; 
+    std::vector<Product*> products;
     int lowStockThreshold;
 
 public:
@@ -147,6 +148,106 @@ public:
             product->displayDetails();
         }
     }
+
+    ~Inventory() {
+        for (Product* product : products) {
+            delete product;
+        }
+    }
+};
+
+class ConfigReader {
+private:
+    std::string filename;
+    Inventory* inventory;
+
+public:
+    ConfigReader(const std::string& filename, Inventory* inv) : filename(filename), inventory(inv) {}
+
+
+    void readConfigFile() {
+        std::ifstream file(filename);
+
+        if (!file) {
+            std::cout << "Unable to open file " << filename << std::endl;
+            return;
+        }
+
+        std::string line;
+        while (std::getline(file, line)) {
+
+            std::istringstream iss(line);
+            std::string type;
+            std::getline(iss, type, ',');
+
+            if (type == "Electronics") {
+                readElectronics(iss);
+            }
+            else if (type == "Books") {
+                readBooks(iss);
+            }
+            else if (type == "Clothing") {
+                readClothing(iss);
+            }
+        }
+
+        file.close();
+    }
+
+    void readElectronics(std::istringstream& iss) {
+        std::string name, brand, model;
+        double price, powerConsumption;
+        int quantityInStock;
+
+        std::getline(iss, name, ',');
+        iss >> price;
+        iss.ignore();
+        iss >> quantityInStock;
+        iss.ignore();
+        std::getline(iss, brand, ',');
+        std::getline(iss, model, ',');
+        iss >> powerConsumption;
+
+        Electronics* e = new Electronics(0, name, price, quantityInStock, brand, model, powerConsumption);
+        inventory->addProduct(e);
+    }
+
+    void readBooks(std::istringstream& iss) {
+        std::string name, author, genre, ISBN;
+        double price;
+        int quantityInStock;
+
+        std::getline(iss, name, ',');
+        iss >> price;
+        iss.ignore();
+        iss >> quantityInStock;
+        iss.ignore();
+        std::getline(iss, author, ',');
+        std::getline(iss, genre, ',');
+        std::getline(iss, ISBN, ',');
+
+        Books* b = new Books(0, name, price, quantityInStock, author, genre, ISBN);
+        inventory->addProduct(b);
+    }
+
+    void readClothing(std::istringstream& iss) {
+        std::string name, size, color, material;
+        double price;
+        int quantityInStock;
+
+        std::getline(iss, name, ',');
+        iss >> price;
+        iss.ignore();
+        iss >> quantityInStock;
+        iss.ignore();
+        std::getline(iss, size, ',');
+        std::getline(iss, color, ',');
+        std::getline(iss, material, ',');
+
+        Clothing* c = new Clothing(0, name, price, quantityInStock, size, color, material);
+        inventory->addProduct(c);
+    }
+
 };
 
 
@@ -154,22 +255,23 @@ int main() {
     Electronics* e1 = new Electronics(1, "TV", 500.0, 3, "Samsung", "Model1", 100.0);
     Electronics* e2 = new Electronics(2, "Fridge", 1000.0, 5, "LG", "Model2", 200.0);
 
-    Inventory* inventory = new Inventory(2);
+    Inventory inventory(2);
 
-    inventory->addProduct(e1);
-    inventory->addProduct(e2);
+    inventory.addProduct(e1);
+    inventory.addProduct(e2);
 
-    inventory->displayAllProducts();
+    inventory.displayAllProducts();
 
-    inventory->subtractQuantity(1, 1); 
+    inventory.subtractQuantity(1, 1); 
     std::cout << "-------" << std::endl;
-    inventory->displayAllProducts();
+    inventory.displayAllProducts();
 
-    inventory->notifyLowStock();
+    inventory.notifyLowStock();
 
-    delete e1;
-    delete e2;
-    delete inventory;
+    ConfigReader reader("config.txt", &inventory); 
+    reader.readConfigFile();
+    std::cout << "-------" << std::endl;
+    inventory.displayAllProducts();
 
     return 0;
 }

@@ -222,6 +222,7 @@ public:
     void viewProducts() {
         for (Product* product : productManager->getProducts()) {
             product->displayDetails();
+            std::cout << "--------------------" << std::endl;
         }
     }
 };
@@ -236,8 +237,10 @@ private:
     std::string orderStatus;
 
 public:
-    Order(int id, const std::string& cust)
-        : orderID(id), customer(cust), totalCost(0.0), orderStatus("Created") {}
+    Order(const std::string& cust)
+        : customer(cust), totalCost(0.0), orderStatus("Created") {
+        orderID = rand();
+    }
 
     void addProduct(int productID, Inventory* inventory) {
         Product* product = inventory->findByID(productID);
@@ -249,6 +252,10 @@ public:
         else {
             std::cout << "Product with ID " << productID << " not found." << std::endl;
         }
+    }
+
+    int get_id() {
+        return orderID;
     }
 
     double calculateTotalCost() {
@@ -271,53 +278,28 @@ public:
     }
 };
 
-class ConfigReader {
+class OrdersSet {
 private:
-    std::string filename;
-    ProductManager* productManager;
+    std::vector<Order> orders;
 
 public:
-    ConfigReader(const std::string& filename, ProductManager* pm) : filename(filename), productManager(pm) {}
-
-
-    void readConfigFile() {
-        std::ifstream file(filename);
-
-        if (!file) {
-            std::cout << "Unable to open file " << filename << std::endl;
-            return;
-        }
-
-
-        std::string line;
-        while (std::getline(file, line)) {
-
-            std::istringstream iss(line);
-            std::string type;
-            std::getline(iss, type, ',');
-
-            if (type == "Electronics") {
-                readElectronics(iss);
-            }
-            else if (type == "Books") {
-                readBooks(iss);
-            }
-            else if (type == "Clothing") {
-                readClothing(iss);
-            }
-        }
-
-        file.close();
+    void addOrder(const Order& order) {
+        orders.push_back(order);
     }
 
-    int generateID() {
-        int id = rand() % 10;
-        id = id * 1000 + rand();
-        return id;
+    Order* findOrderById(int id) {
+        for (auto& order : orders) {
+            if (order.get_id() == id) {
+                return &order;
+            }
+        }
+        return nullptr;
     }
+};
 
-
-    void readElectronics(std::istringstream& iss) {
+class ProductReader {
+public:
+    static Electronics* readElectronics(std::istringstream& iss) {
         std::string name, brand, model;
         double price, powerConsumption;
         int quantityInStock;
@@ -333,11 +315,10 @@ public:
 
         int id = generateID();
 
-        Electronics* e = new Electronics(id, name, price, quantityInStock, brand, model, powerConsumption);
-        productManager->addProduct(e);
+        return new Electronics(id, name, price, quantityInStock, brand, model, powerConsumption);
     }
 
-    void readBooks(std::istringstream& iss) {
+    static Books* readBooks(std::istringstream& iss) {
         std::string name, author, genre, ISBN;
         double price;
         int quantityInStock;
@@ -353,11 +334,10 @@ public:
 
         int id = generateID();
 
-        Books* b = new Books(id, name, price, quantityInStock, author, genre, ISBN);
-        productManager->addProduct(b);
+        return new Books(id, name, price, quantityInStock, author, genre, ISBN);
     }
 
-    void readClothing(std::istringstream& iss) {
+    static Clothing* readClothing(std::istringstream& iss) {
         std::string name, size, color, material;
         double price;
         int quantityInStock;
@@ -373,40 +353,138 @@ public:
 
         int id = generateID();
 
-        Clothing* c = new Clothing(id, name, price, quantityInStock, size, color, material);
-        productManager->addProduct(c);
+        return new Clothing(id, name, price, quantityInStock, size, color, material);
+    }
+
+private:
+    static int generateID() {
+        int id = rand() % 10;
+        id = id * 1000 + rand();
+        return id;
+    }
+};
+
+class ConfigReader {
+private:
+    std::string filename;
+    ProductManager* productManager;
+
+public:
+    ConfigReader(const std::string& filename, ProductManager* pm) : filename(filename), productManager(pm) {}
+
+    void readConfigFile() {
+        std::ifstream file(filename);
+
+        if (!file) {
+            std::cout << "Unable to open file " << filename << std::endl;
+            return;
+        }
+
+        std::string line;
+        while (std::getline(file, line)) {
+            std::istringstream iss(line);
+            std::string type;
+            std::getline(iss, type, ',');
+
+            if (type == "Electronics") {
+                Electronics* e = ProductReader::readElectronics(iss);
+                productManager->addProduct(e);
+            }
+            else if (type == "Books") {
+                Books* b = ProductReader::readBooks(iss);
+                productManager->addProduct(b);
+            }
+            else if (type == "Clothing") {
+                Clothing* c = ProductReader::readClothing(iss);
+                productManager->addProduct(c);
+            }
+        }
+
+        file.close();
     }
 };
 
 
 int main() {
-    Electronics* e1 = new Electronics(1, "TV", 500.0, 3, "Samsung", "Model1", 100.0);
-    Electronics* e2 = new Electronics(2, "Fridge", 1000.0, 5, "LG", "Model2", 200.0);
-
     ProductManager productManager;
-
+    Inventory inventory(&productManager, 2);
+    ProductCatalog productCatalog(&productManager);
     ConfigReader reader("config.txt", &productManager);
     reader.readConfigFile();
 
-    productManager.addProduct(e1);
-    productManager.addProduct(e2);
+    OrdersSet ordersSet;
 
+    std::string command;
+    while (true) {
+        std::cout << "Enter your role (worker/customer): ";
+        std::string role;
+        std::cin >> role;
 
-    ProductCatalog productCatalog(&productManager);
+        std::cout << "Enter your command: ";
+        std::cin >> command;
 
-    productCatalog.viewProducts();
-
-    Electronics* e3 = new Electronics(3, "Laptop", 1000.0, 10, "Dell", "Model3", 50.0);
-    productCatalog.addProduct(e3);
-    std::cout << "-------" << std::endl;
-
-    productCatalog.viewProducts();
-
-    productCatalog.removeProduct(1);
-    std::cout << "-------" << std::endl;
-
-    productCatalog.viewProducts();
+        if (role == "worker") {
+            if (command == "view_products") {
+                productCatalog.viewProducts();
+            }
+            else if (command == "add_product") {
+            }
+            else if (command == "remove_product") {
+            }
+            else if (command == "update_product") {
+            }
+            else if (command == "exit") {
+                break;
+            }
+            else {
+                std::cout << "Invalid command\n";
+            }
+        }
+        else if (role == "customer") {
+            if (command == "view_products") {
+                productCatalog.viewProducts();
+            }
+            else if (command == "create_order") {
+                std::string customer;
+                std::cin >> customer;
+                Order order(customer);
+                ordersSet.addOrder(order);
+                std::cout << "Order created for customer " << customer << " with ID " << order.get_id() << std::endl;
+            }
+            else if (command == "add_item") {
+                int orderId, productId;
+                std::cin >> orderId >> productId;
+                Order* order = ordersSet.findOrderById(orderId);
+                if (order != nullptr) {
+                    order->addProduct(productId, &inventory);
+                    std::cout << "Product " << productId << " added to order " << orderId << std::endl;
+                }
+                else {
+                    std::cout << "Order not found\n";
+                }
+            }
+            else if (command == "get_total_cost") {
+                int orderId;
+                std::cin >> orderId;
+                Order* order = ordersSet.findOrderById(orderId);
+                if (order != nullptr) {
+                    std::cout << "Total cost of order: " << order->calculateTotalCost() << std::endl;
+                }
+                else {
+                    std::cout << "Order not found\n";
+                }
+            }
+            else if (command == "exit") {
+                break;
+            }
+            else {
+                std::cout << "Invalid command\n";
+            }
+        }
+        else {
+            std::cout << "Invalid role\n";
+        }
+    }
 
     return 0;
 }
-

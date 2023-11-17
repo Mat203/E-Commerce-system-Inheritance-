@@ -62,6 +62,7 @@ public:
 
     void displayDetails() const override {
         std::cout << "Product ID: " << getProductID() << std::endl;
+        std::cout << "Electronics" << std::endl;
         std::cout << "Name: " << getName() << std::endl;
         std::cout << "Price: " << getPrice() << std::endl;
         std::cout << "Quantity in Stock: " << getQuantityInStock() << std::endl;
@@ -85,6 +86,7 @@ public:
 
     void displayDetails() const override {
         std::cout << "Product ID: " << getProductID() << std::endl;
+        std::cout << "Books " << std::endl;
         std::cout << "Name: " << getName() << std::endl;
         std::cout << "Price: " << getPrice() << std::endl;
         std::cout << "Quantity in Stock: " << getQuantityInStock() << std::endl;
@@ -108,6 +110,7 @@ public:
 
     void displayDetails() const override {
         std::cout << "Product ID: " << getProductID() << std::endl;
+        std::cout << "Clothing " << std::endl;
         std::cout << "Name: " << getName() << std::endl;
         std::cout << "Price: " << getPrice() << std::endl;
         std::cout << "Quantity in Stock: " << getQuantityInStock() << std::endl;
@@ -445,6 +448,14 @@ int main() {
 
     while (true) {
         if (role == "worker") {
+        std::cout << "\n=== Worker Menu ===\n";
+        std::cout << "Available Commands:\n";
+        std::cout << "1. view_products\n";
+        std::cout << "2. add_product <product info>\n";
+        std::cout << "3. remove_product <product_id>\n";
+        std::cout << "4. notify_low_stock\n";
+        std::cout << "5. get_products_to_restock\n";
+        std::cout << "6. exit\n";
         std::cout << "Enter your command: ";
         std::cin >> command;
             if (command == "view_products") {
@@ -478,6 +489,12 @@ int main() {
                 productCatalog.removeProduct(productID);
                 std::cout << "Prodduct have removed" << std::endl;
             }
+            else if (command == "notify_low_stock") {
+                inventory.notifyLowStock();
+            }
+            else if (command == "get_products_to_restock") {
+                inventory.getProductsToRestock();
+            }
             else if (command == "exit") {
                 break;
             }
@@ -486,6 +503,14 @@ int main() {
             }
         }
         else if (role == "customer") {
+            std::cout << "\n=== Customer Menu ===\n";
+            std::cout << "Available Commands:\n";
+            std::cout << "1. view_products\n";
+            std::cout << "2. create_order <username>\n";
+            std::cout << "3. add_item <order_id> <product_id>\n";
+            std::cout << "4. checkout <order_id>\n";
+            std::cout << "5. show <product_type>\n";
+            std::cout << "6. exit\n";
             std::cout << "Enter your command: ";
             std::cin >> command;
             if (command == "view_products") {

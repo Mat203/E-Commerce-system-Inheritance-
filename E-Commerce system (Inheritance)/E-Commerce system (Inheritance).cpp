@@ -105,48 +105,13 @@ public:
     }
 };
 
-class Inventory {
+class ProductManager {
 private:
     std::vector<Product*> products;
-    int lowStockThreshold;
 
 public:
-    Inventory(int threshold) : lowStockThreshold(threshold) {}
-
     void addProduct(Product* product) {
         products.push_back(product);
-    }
-
-    void subtractQuantity(int productID, int quantity) {
-        for (Product* product : products) {
-            if (product->getProductID() == productID) {
-                product->decreaseQuantity();
-            }
-        }
-    }
-
-    void notifyLowStock() {
-        for (Product* product : products) {
-            if (product->getQuantityInStock() <= lowStockThreshold) {
-                std::cout << "Product " << product->getName() << " is low in stock." << std::endl;
-            }
-        }
-    }
-
-    std::vector<Product*> getProductsToRestock() {
-        std::vector<Product*> productsToRestock;
-        for (Product* product : products) {
-            if (product->getQuantityInStock() <= lowStockThreshold) {
-                productsToRestock.push_back(product);
-            }
-        }
-        return productsToRestock;
-    }
-
-    void displayAllProducts() {
-        for (Product* product : products) {
-            product->displayDetails();
-        }
     }
 
     Product* findProductByID(int productID) {
@@ -155,13 +120,153 @@ public:
                 return product;
             }
         }
-        return nullptr; 
+        return nullptr;
+    }
+
+    void removeProduct(int productID) {
+        Product* product = findProductByID(productID);
+        if (product != nullptr) {
+            products.erase(std::remove(products.begin(), products.end(), product), products.end());
+            delete product;
+        }
+        else {
+            std::cout << "Product with ID " << productID << " not found." << std::endl;
+        }
+    }
+
+    std::vector<Product*> getProducts() {
+        return products;
     }
 
 
-    ~Inventory() {
+    ~ProductManager() {
         for (Product* product : products) {
             delete product;
+        }
+    }
+};
+
+
+class Inventory {
+private:
+    ProductManager* productManager;
+    int lowStockThreshold;
+
+public:
+    Inventory(ProductManager* pm, int threshold) : productManager(pm), lowStockThreshold(threshold) {}
+
+    void subtractQuantity(int productID, int quantity) {
+        Product* product = productManager->findProductByID(productID);
+        if (product != nullptr) {
+            product->decreaseQuantity();
+        }
+    }
+
+    Product* findByID(int productID) {
+        Product* product = productManager->findProductByID(productID);
+        return product;
+    }
+
+    void notifyLowStock() {
+        for (Product* product : productManager->getProducts()) {
+            if (product->getQuantityInStock() <= lowStockThreshold) {
+                std::cout << "Product " << product->getName() << " is low in stock." << std::endl;
+            }
+        }
+    }
+
+    std::vector<Product*> getProductsToRestock() {
+        std::vector<Product*> productsToRestock;
+        for (Product* product : productManager->getProducts()) {
+            if (product->getQuantityInStock() <= lowStockThreshold) {
+                productsToRestock.push_back(product);
+            }
+        }
+        return productsToRestock;
+    }
+
+    void displayAllProducts() {
+        for (Product* product : productManager->getProducts()) {
+            product->displayDetails();
+        }
+    }
+};
+
+
+class ProductCatalog {
+private:
+    ProductManager* productManager;
+
+public:
+    ProductCatalog(ProductManager* pm) : productManager(pm) {}
+
+    void addProduct(Product* product) {
+        productManager->addProduct(product);
+    }
+
+    void updateProduct(int productID, Product* updatedProduct) {
+        Product* product = productManager->findProductByID(productID);
+        if (product != nullptr) {
+            productManager->removeProduct(productID);
+            productManager->addProduct(updatedProduct);
+        }
+        else {
+            std::cout << "Product with ID " << productID << " not found." << std::endl;
+        }
+    }
+
+    void removeProduct(int productID) {
+        productManager->removeProduct(productID);
+    }
+
+    void viewProducts() {
+        for (Product* product : productManager->getProducts()) {
+            product->displayDetails();
+        }
+    }
+};
+
+
+class Order {
+private:
+    int orderID;
+    std::string customer;
+    std::vector<Product*> products;
+    double totalCost;
+    std::string orderStatus;
+
+public:
+    Order(int id, const std::string& cust)
+        : orderID(id), customer(cust), totalCost(0.0), orderStatus("Created") {}
+
+    void addProduct(int productID, Inventory* inventory) {
+        Product* product = inventory->findByID(productID);
+        if (product != nullptr) {
+            products.push_back(product);
+            totalCost += product->getPrice();
+            inventory->subtractQuantity(productID, 1); 
+        }
+        else {
+            std::cout << "Product with ID " << productID << " not found." << std::endl;
+        }
+    }
+
+    double calculateTotalCost() {
+        return totalCost;
+    }
+
+    void changeOrderStatus(const std::string& status) {
+        orderStatus = status;
+    }
+
+    void displayOrderDetails() {
+        std::cout << "Order ID: " << orderID << std::endl;
+        std::cout << "Customer: " << customer << std::endl;
+        std::cout << "Total Cost: " << totalCost << std::endl;
+        std::cout << "Order Status: " << orderStatus << std::endl;
+        std::cout << "Products: " << std::endl;
+        for (Product* product : products) {
+            product->displayDetails();
         }
     }
 };
@@ -169,10 +274,10 @@ public:
 class ConfigReader {
 private:
     std::string filename;
-    Inventory* inventory;
+    ProductManager* productManager;
 
 public:
-    ConfigReader(const std::string& filename, Inventory* inv) : filename(filename), inventory(inv) {}
+    ConfigReader(const std::string& filename, ProductManager* pm) : filename(filename), productManager(pm) {}
 
 
     void readConfigFile() {
@@ -182,6 +287,7 @@ public:
             std::cout << "Unable to open file " << filename << std::endl;
             return;
         }
+
 
         std::string line;
         while (std::getline(file, line)) {
@@ -228,7 +334,7 @@ public:
         int id = generateID();
 
         Electronics* e = new Electronics(id, name, price, quantityInStock, brand, model, powerConsumption);
-        inventory->addProduct(e);
+        productManager->addProduct(e);
     }
 
     void readBooks(std::istringstream& iss) {
@@ -248,7 +354,7 @@ public:
         int id = generateID();
 
         Books* b = new Books(id, name, price, quantityInStock, author, genre, ISBN);
-        inventory->addProduct(b);
+        productManager->addProduct(b);
     }
 
     void readClothing(std::istringstream& iss) {
@@ -268,53 +374,7 @@ public:
         int id = generateID();
 
         Clothing* c = new Clothing(id, name, price, quantityInStock, size, color, material);
-        inventory->addProduct(c);
-    }
-};
-
-class Order {
-private:
-    int orderID;
-    std::string customer;
-    std::vector<Product*> products;
-    double totalCost;
-    std::string orderStatus;
-
-public:
-    Order(int id, const std::string& cust)
-        : orderID(id), customer(cust), totalCost(0.0), orderStatus("Created") {}
-
-    void addProduct(int productID, Inventory* inventory) {
-        Product* product = inventory->findProductByID(productID);
-        if (product != nullptr) {
-            products.push_back(product);
-            totalCost += product->getPrice();
-            inventory->subtractQuantity(productID, 1); 
-        }
-        else {
-            std::cout << "Product with ID " << productID << " not found." << std::endl;
-        }
-    }
-
-
-
-    double calculateTotalCost() {
-        return totalCost;
-    }
-
-    void changeOrderStatus(const std::string& status) {
-        orderStatus = status;
-    }
-
-    void displayOrderDetails() {
-        std::cout << "Order ID: " << orderID << std::endl;
-        std::cout << "Customer: " << customer << std::endl;
-        std::cout << "Total Cost: " << totalCost << std::endl;
-        std::cout << "Order Status: " << orderStatus << std::endl;
-        std::cout << "Products: " << std::endl;
-        for (Product* product : products) {
-            product->displayDetails();
-        }
+        productManager->addProduct(c);
     }
 };
 
@@ -323,29 +383,29 @@ int main() {
     Electronics* e1 = new Electronics(1, "TV", 500.0, 3, "Samsung", "Model1", 100.0);
     Electronics* e2 = new Electronics(2, "Fridge", 1000.0, 5, "LG", "Model2", 200.0);
 
-    Inventory inventory(2);
+    ProductManager productManager;
 
-    inventory.addProduct(e1);
-    inventory.addProduct(e2);
-
-    inventory.displayAllProducts();
-
-    inventory.subtractQuantity(1, 1);
-    std::cout << "-------" << std::endl;
-    inventory.displayAllProducts();
-
-    inventory.notifyLowStock();
-
-    ConfigReader reader("config.txt", &inventory);
+    ConfigReader reader("config.txt", &productManager);
     reader.readConfigFile();
-    std::cout << "-------" << std::endl;
-    inventory.displayAllProducts();
 
-    Order order(1, "Customer1");
-    order.addProduct(1, &inventory);
-    order.addProduct(2, &inventory);
+    productManager.addProduct(e1);
+    productManager.addProduct(e2);
+
+
+    ProductCatalog productCatalog(&productManager);
+
+    productCatalog.viewProducts();
+
+    Electronics* e3 = new Electronics(3, "Laptop", 1000.0, 10, "Dell", "Model3", 50.0);
+    productCatalog.addProduct(e3);
     std::cout << "-------" << std::endl;
-    order.displayOrderDetails();
+
+    productCatalog.viewProducts();
+
+    productCatalog.removeProduct(1);
+    std::cout << "-------" << std::endl;
+
+    productCatalog.viewProducts();
 
     return 0;
 }

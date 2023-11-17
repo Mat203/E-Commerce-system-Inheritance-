@@ -33,6 +33,8 @@ public:
 
     virtual void displayDetails() const = 0;
 
+    virtual std::string getType() const = 0;
+
     double calculateTotalCost() {
         return price * quantityInStock;
     }
@@ -65,6 +67,10 @@ public:
         std::cout << "Quantity in Stock: " << getQuantityInStock() << std::endl;
         std::cout << "Power Consumption: " << powerConsumption << std::endl;
     }
+
+    std::string getType() const override {
+        return "Electronics";
+    }
 };
 
 class Books : public Product {
@@ -84,6 +90,10 @@ public:
         std::cout << "Quantity in Stock: " << getQuantityInStock() << std::endl;
         std::cout << "Author: " << author << std::endl;
     }
+
+    std::string getType() const override {
+        return "Books";
+    }
 };
 
 class Clothing : public Product {
@@ -102,6 +112,10 @@ public:
         std::cout << "Price: " << getPrice() << std::endl;
         std::cout << "Quantity in Stock: " << getQuantityInStock() << std::endl;
         std::cout << "Size: " << size << std::endl;
+    }
+
+    std::string getType() const override {
+        return "Clothing";
     }
 };
 
@@ -225,6 +239,15 @@ public:
             std::cout << "--------------------" << std::endl;
         }
     }
+    void viewProductsByType(const std::string& type) {
+        for (Product* product : productManager->getProducts()) {
+            if (product->getType() == type) {
+                product->displayDetails();
+                std::cout << "--------------------" << std::endl;
+            }
+        }
+    }
+
 };
 
 
@@ -487,16 +510,23 @@ int main() {
                     std::cout << "Order not found\n";
                 }
             }
-            else if (command == "get_total_cost") {
+            else if (command == "checkout") {
                 int orderId;
                 std::cin >> orderId;
                 Order* order = ordersSet.findOrderById(orderId);
                 if (order != nullptr) {
+                    order->changeOrderStatus("Checkout");
+                    order->displayOrderDetails();
                     std::cout << "Total cost of order: " << order->calculateTotalCost() << std::endl;
                 }
                 else {
                     std::cout << "Order not found\n";
                 }
+            }
+            else if (command == "show") {
+                std::string type;
+                std::cin >> type;
+                productCatalog.viewProductsByType(type);
             }
             else if (command == "exit") {
                 break;

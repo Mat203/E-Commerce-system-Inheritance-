@@ -299,7 +299,7 @@ public:
 
 class ProductReader {
 public:
-    static Electronics* readElectronics(std::istringstream& iss) {
+    static Electronics* readElectronics(std::istream& iss) {
         std::string name, brand, model;
         double price, powerConsumption;
         int quantityInStock;
@@ -318,7 +318,7 @@ public:
         return new Electronics(id, name, price, quantityInStock, brand, model, powerConsumption);
     }
 
-    static Books* readBooks(std::istringstream& iss) {
+    static Books* readBooks(std::istream& iss) {
         std::string name, author, genre, ISBN;
         double price;
         int quantityInStock;
@@ -337,7 +337,7 @@ public:
         return new Books(id, name, price, quantityInStock, author, genre, ISBN);
     }
 
-    static Clothing* readClothing(std::istringstream& iss) {
+    static Clothing* readClothing(std::istream& iss) {
         std::string name, size, color, material;
         double price;
         int quantityInStock;
@@ -415,23 +415,45 @@ int main() {
     OrdersSet ordersSet;
 
     std::string command;
-    while (true) {
-        std::cout << "Enter your role (worker/customer): ";
-        std::string role;
-        std::cin >> role;
 
+    std::cout << "Enter your role (worker/customer): ";
+    std::string role;
+    std::cin >> role;
+
+    while (true) {
+        if (role == "worker") {
         std::cout << "Enter your command: ";
         std::cin >> command;
-
-        if (role == "worker") {
             if (command == "view_products") {
                 productCatalog.viewProducts();
             }
             else if (command == "add_product") {
+                std::string input;
+                std::getline(std::cin, input);
+                std::istringstream iss(input);
+                std::string type;
+                std::getline(iss, type, ',');
+                std::cout << type << std::endl;
+                if (type == " Electronics") {
+                    Electronics* e = ProductReader::readElectronics(iss);
+                    productCatalog.addProduct(e);
+                }
+                else if (type == " Books") {
+                    Books* b = ProductReader::readBooks(iss);
+                    productCatalog.addProduct(b);
+                }
+                else if (type == " Clothing") {
+                    std::cout << "afsfs" << std::endl;
+                    Clothing* c = ProductReader::readClothing(iss);
+                    productCatalog.addProduct(c);
+                }
             }
+
             else if (command == "remove_product") {
-            }
-            else if (command == "update_product") {
+                int productID;
+                std::cin >> productID;
+                productCatalog.removeProduct(productID);
+                std::cout << "Prodduct have removed" << std::endl;
             }
             else if (command == "exit") {
                 break;
@@ -441,6 +463,8 @@ int main() {
             }
         }
         else if (role == "customer") {
+            std::cout << "Enter your command: ";
+            std::cin >> command;
             if (command == "view_products") {
                 productCatalog.viewProducts();
             }

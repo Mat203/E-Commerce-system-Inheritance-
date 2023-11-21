@@ -4,7 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include "Product.h"
-
+#include "ProductManager.h"
 
 
 class Electronics : public Product {
@@ -76,47 +76,6 @@ public:
 
     std::string getType() const override {
         return "Clothing";
-    }
-};
-
-class ProductManager {
-private:
-    std::vector<Product*> products;
-
-public:
-    void addProduct(Product* product) {
-        products.push_back(product);
-    }
-
-    Product* findProductByID(int productID) {
-        for (Product* product : products) {
-            if (product->getProductID() == productID) {
-                return product;
-            }
-        }
-        return nullptr;
-    }
-
-    void removeProduct(int productID) {
-        Product* product = findProductByID(productID);
-        if (product != nullptr) {
-            products.erase(std::remove(products.begin(), products.end(), product), products.end());
-            delete product;
-        }
-        else {
-            std::cout << "Product with ID " << productID << " not found." << std::endl;
-        }
-    }
-
-    std::vector<Product*> getProducts() {
-        return products;
-    }
-
-
-    ~ProductManager() {
-        for (Product* product : products) {
-            delete product;
-        }
     }
 };
 

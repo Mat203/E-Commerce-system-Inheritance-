@@ -129,9 +129,11 @@
   <ItemGroup>
     <ClCompile Include="E-Commerce system (Inheritance).cpp" />
     <ClCompile Include="Product.cpp" />
+    <ClCompile Include="ProductManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Product.h" />
+    <ClInclude Include="ProductManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

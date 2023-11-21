@@ -257,7 +257,7 @@ public:
 
         int id = generateID();
 
-        return new Electronics(id, name, price, quantityInStock, brand, model, powerConsumption);
+        return new Electronics(id, std::move(name), price, quantityInStock, std::move(brand), std::move(model), powerConsumption);
     }
 
     static Books* readBooks(std::istream& iss) {
@@ -276,7 +276,7 @@ public:
 
         int id = generateID();
 
-        return new Books(id, name, price, quantityInStock, author, genre, ISBN);
+        return new Books(id, std::move(name), price, quantityInStock, std::move(author), std::move(genre), std::move(ISBN));
     }
 
     static Clothing* readClothing(std::istream& iss) {
@@ -295,7 +295,7 @@ public:
 
         int id = generateID();
 
-        return new Clothing(id, name, price, quantityInStock, size, color, material);
+        return new Clothing(id, std::move(name), price, quantityInStock, std::move(size), std::move(color), std::move(material));
     }
 
 private:

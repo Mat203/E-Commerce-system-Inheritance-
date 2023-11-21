@@ -45,6 +45,10 @@ public:
     std::string getType() const override {
         return "Books";
     }
+
+    std::string getAuthor() const {
+        return author;
+    }
 };
 
 class Clothing : public Product {
@@ -155,6 +159,14 @@ public:
         }
     }
 
+    void displayBookAuthors() {
+        for (Product* product : productManager->getProducts()) {
+            Books* book = dynamic_cast<Books*>(product);
+            if (book) {
+                std::cout << "Author of the book '" << book->getName() << "': " << book->getAuthor() << std::endl;
+            }
+        }
+    }
 };
 
 
@@ -343,6 +355,8 @@ int main() {
     reader.readConfigFile();
 
     OrdersSet ordersSet;
+
+    productCatalog.displayBookAuthors();
 
     std::string command;
 

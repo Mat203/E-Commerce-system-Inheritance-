@@ -128,6 +128,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="E-Commerce system (Inheritance).cpp" />
+    <ClCompile Include="Product.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Product.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -3,51 +3,8 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include "Product.h"
 
-
-class Product {
-private:
-    int productID;
-    std::string name;
-    double price;
-    int quantityInStock;
-
-public:
-    Product(int id, std::string n, double p, int q) : productID(id), name(n), price(p), quantityInStock(q) {}
-
-    int getQuantityInStock() const {
-        return quantityInStock;
-    }
-
-    std::string getName() const {
-        return name;
-    }
-
-    int getProductID() const {
-        return productID;
-    }
-
-    double getPrice() const {
-        return price;
-    }
-
-    virtual void displayDetails() const = 0;
-
-    virtual std::string getType() const = 0;
-
-    double calculateTotalCost() {
-        return price * quantityInStock;
-    }
-
-    void decreaseQuantity() {
-        if (quantityInStock > 0) {
-            quantityInStock--;
-        }
-        else {
-            std::cout << "No more stock for product " << name << std::endl;
-        }
-    }
-};
 
 
 class Electronics : public Product {

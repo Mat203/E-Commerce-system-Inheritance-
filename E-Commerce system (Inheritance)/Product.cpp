@@ -31,3 +31,10 @@ void Product::decreaseQuantity() {
         std::cout << "No more stock for product " << name << std::endl;
     }
 }
+
+void Product::print() const {
+    std::cout << "Product ID: " << productID << std::endl;
+    std::cout << "Name: " << name << std::endl;
+    std::cout << "Price: " << price << std::endl;
+    std::cout << "Quantity in Stock: " << quantityInStock << std::endl;
+}

@@ -18,11 +18,7 @@ public:
         : Product(id, n, p, q), brand(b), model(m), powerConsumption(pc) {}
 
     void displayDetails() const override {
-        std::cout << "Product ID: " << getProductID() << std::endl;
-        std::cout << "Electronics" << std::endl;
-        std::cout << "Name: " << getName() << std::endl;
-        std::cout << "Price: " << getPrice() << std::endl;
-        std::cout << "Quantity in Stock: " << getQuantityInStock() << std::endl;
+        Product::print();
         std::cout << "Power Consumption: " << powerConsumption << std::endl;
     }
 
@@ -42,11 +38,7 @@ public:
         : Product(id, n, p, q), author(a), genre(g), ISBN(isbn) {}
 
     void displayDetails() const override {
-        std::cout << "Product ID: " << getProductID() << std::endl;
-        std::cout << "Books " << std::endl;
-        std::cout << "Name: " << getName() << std::endl;
-        std::cout << "Price: " << getPrice() << std::endl;
-        std::cout << "Quantity in Stock: " << getQuantityInStock() << std::endl;
+        Product::print();
         std::cout << "Author: " << author << std::endl;
     }
 
@@ -66,11 +58,7 @@ public:
         : Product(id, n, p, q), size(s), color(c), material(m) {}
 
     void displayDetails() const override {
-        std::cout << "Product ID: " << getProductID() << std::endl;
-        std::cout << "Clothing " << std::endl;
-        std::cout << "Name: " << getName() << std::endl;
-        std::cout << "Price: " << getPrice() << std::endl;
-        std::cout << "Quantity in Stock: " << getQuantityInStock() << std::endl;
+        Product::print();
         std::cout << "Size: " << size << std::endl;
     }
 

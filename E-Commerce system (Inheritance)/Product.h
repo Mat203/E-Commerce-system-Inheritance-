@@ -28,6 +28,8 @@ public:
     double calculateTotalCost();
 
     void decreaseQuantity();
+
+    void print() const;
 };
 
 #endif // PRODUCT_H

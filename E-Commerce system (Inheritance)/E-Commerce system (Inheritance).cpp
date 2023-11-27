@@ -346,142 +346,150 @@ public:
     }
 };
 
+class MenuHandler {
+public:
+    void run() {
+        ProductManager productManager;
+        Inventory inventory(&productManager, 2);
+        ProductCatalog productCatalog(&productManager);
+        ConfigReader reader("config.txt", &productManager);
+        reader.readConfigFile();
 
-int main() {
-    ProductManager productManager;
-    Inventory inventory(&productManager, 2);
-    ProductCatalog productCatalog(&productManager);
-    ConfigReader reader("config.txt", &productManager);
-    reader.readConfigFile();
+        OrdersSet ordersSet;
 
-    OrdersSet ordersSet;
+        productCatalog.displayBookAuthors();
 
-    productCatalog.displayBookAuthors();
+        std::string command;
 
-    std::string command;
+        std::cout << "Enter your role (worker/customer): ";
+        std::string role;
+        std::cin >> role;
 
-    std::cout << "Enter your role (worker/customer): ";
-    std::string role;
-    std::cin >> role;
+        while (true) {
+            while (true) {
+                if (role == "worker") {
+                    std::cout << "\n=== Worker Menu ===\n";
+                    std::cout << "Available Commands:\n";
+                    std::cout << "1. view_products\n";
+                    std::cout << "2. add_product <product info>\n";
+                    std::cout << "3. remove_product <product_id>\n";
+                    std::cout << "4. notify_low_stock\n";
+                    std::cout << "5. get_products_to_restock\n";
+                    std::cout << "6. exit\n";
+                    std::cout << "Enter your command: ";
+                    std::cin >> command;
+                    if (command == "view_products") {
+                        productCatalog.viewProducts();
+                    }
+                    else if (command == "add_product") {
+                        std::string input;
+                        std::getline(std::cin, input);
+                        std::istringstream iss(input);
+                        std::string type;
+                        std::getline(iss, type, ',');
+                        std::cout << type << std::endl;
+                        if (type == " Electronics") {
+                            Electronics* e = ProductReader::readElectronics(iss);
+                            productCatalog.addProduct(e);
+                        }
+                        else if (type == " Books") {
+                            Books* b = ProductReader::readBooks(iss);
+                            productCatalog.addProduct(b);
+                        }
+                        else if (type == " Clothing") {
+                            std::cout << "afsfs" << std::endl;
+                            Clothing* c = ProductReader::readClothing(iss);
+                            productCatalog.addProduct(c);
+                        }
+                    }
 
-    while (true) {
-        if (role == "worker") {
-        std::cout << "\n=== Worker Menu ===\n";
-        std::cout << "Available Commands:\n";
-        std::cout << "1. view_products\n";
-        std::cout << "2. add_product <product info>\n";
-        std::cout << "3. remove_product <product_id>\n";
-        std::cout << "4. notify_low_stock\n";
-        std::cout << "5. get_products_to_restock\n";
-        std::cout << "6. exit\n";
-        std::cout << "Enter your command: ";
-        std::cin >> command;
-            if (command == "view_products") {
-                productCatalog.viewProducts();
-            }
-            else if (command == "add_product") {
-                std::string input;
-                std::getline(std::cin, input);
-                std::istringstream iss(input);
-                std::string type;
-                std::getline(iss, type, ',');
-                std::cout << type << std::endl;
-                if (type == " Electronics") {
-                    Electronics* e = ProductReader::readElectronics(iss);
-                    productCatalog.addProduct(e);
+                    else if (command == "remove_product") {
+                        int productID;
+                        std::cin >> productID;
+                        productCatalog.removeProduct(productID);
+                        std::cout << "Prodduct have removed" << std::endl;
+                    }
+                    else if (command == "notify_low_stock") {
+                        inventory.notifyLowStock();
+                    }
+                    else if (command == "get_products_to_restock") {
+                        inventory.getProductsToRestock();
+                    }
+                    else if (command == "exit") {
+                        break;
+                    }
+                    else {
+                        std::cout << "Invalid command\n";
+                    }
                 }
-                else if (type == " Books") {
-                    Books* b = ProductReader::readBooks(iss);
-                    productCatalog.addProduct(b);
-                }
-                else if (type == " Clothing") {
-                    std::cout << "afsfs" << std::endl;
-                    Clothing* c = ProductReader::readClothing(iss);
-                    productCatalog.addProduct(c);
-                }
-            }
-
-            else if (command == "remove_product") {
-                int productID;
-                std::cin >> productID;
-                productCatalog.removeProduct(productID);
-                std::cout << "Prodduct have removed" << std::endl;
-            }
-            else if (command == "notify_low_stock") {
-                inventory.notifyLowStock();
-            }
-            else if (command == "get_products_to_restock") {
-                inventory.getProductsToRestock();
-            }
-            else if (command == "exit") {
-                break;
-            }
-            else {
-                std::cout << "Invalid command\n";
-            }
-        }
-        else if (role == "customer") {
-            std::cout << "\n=== Customer Menu ===\n";
-            std::cout << "Available Commands:\n";
-            std::cout << "1. view_products\n";
-            std::cout << "2. create_order <username>\n";
-            std::cout << "3. add_item <order_id> <product_id>\n";
-            std::cout << "4. checkout <order_id>\n";
-            std::cout << "5. show <product_type>\n";
-            std::cout << "6. exit\n";
-            std::cout << "Enter your command: ";
-            std::cin >> command;
-            if (command == "view_products") {
-                productCatalog.viewProducts();
-            }
-            else if (command == "create_order") {
-                std::string customer;
-                std::cin >> customer;
-                Order order(customer);
-                ordersSet.addOrder(order);
-                std::cout << "Order created for customer " << customer << " with ID " << order.get_id() << std::endl;
-            }
-            else if (command == "add_item") {
-                int orderId, productId;
-                std::cin >> orderId >> productId;
-                Order* order = ordersSet.findOrderById(orderId);
-                if (order != nullptr) {
-                    order->addProduct(productId, &inventory);
-                    std::cout << "Product " << productId << " added to order " << orderId << std::endl;
+                else if (role == "customer") {
+                    std::cout << "\n=== Customer Menu ===\n";
+                    std::cout << "Available Commands:\n";
+                    std::cout << "1. view_products\n";
+                    std::cout << "2. create_order <username>\n";
+                    std::cout << "3. add_item <order_id> <product_id>\n";
+                    std::cout << "4. checkout <order_id>\n";
+                    std::cout << "5. show <product_type>\n";
+                    std::cout << "6. exit\n";
+                    std::cout << "Enter your command: ";
+                    std::cin >> command;
+                    if (command == "view_products") {
+                        productCatalog.viewProducts();
+                    }
+                    else if (command == "create_order") {
+                        std::string customer;
+                        std::cin >> customer;
+                        Order order(customer);
+                        ordersSet.addOrder(order);
+                        std::cout << "Order created for customer " << customer << " with ID " << order.get_id() << std::endl;
+                    }
+                    else if (command == "add_item") {
+                        int orderId, productId;
+                        std::cin >> orderId >> productId;
+                        Order* order = ordersSet.findOrderById(orderId);
+                        if (order != nullptr) {
+                            order->addProduct(productId, &inventory);
+                            std::cout << "Product " << productId << " added to order " << orderId << std::endl;
+                        }
+                        else {
+                            std::cout << "Order not found\n";
+                        }
+                    }
+                    else if (command == "checkout") {
+                        int orderId;
+                        std::cin >> orderId;
+                        Order* order = ordersSet.findOrderById(orderId);
+                        if (order != nullptr) {
+                            order->changeOrderStatus("Checkout");
+                            order->displayOrderDetails();
+                            std::cout << "Total cost of order: " << order->calculateTotalCost() << std::endl;
+                        }
+                        else {
+                            std::cout << "Order not found\n";
+                        }
+                    }
+                    else if (command == "show") {
+                        std::string type;
+                        std::cin >> type;
+                        productCatalog.viewProductsByType(type);
+                    }
+                    else if (command == "exit") {
+                        break;
+                    }
+                    else {
+                        std::cout << "Invalid command\n";
+                    }
                 }
                 else {
-                    std::cout << "Order not found\n";
+                    std::cout << "Invalid role\n";
                 }
             }
-            else if (command == "checkout") {
-                int orderId;
-                std::cin >> orderId;
-                Order* order = ordersSet.findOrderById(orderId);
-                if (order != nullptr) {
-                    order->changeOrderStatus("Checkout");
-                    order->displayOrderDetails();
-                    std::cout << "Total cost of order: " << order->calculateTotalCost() << std::endl;
-                }
-                else {
-                    std::cout << "Order not found\n";
-                }
-            }
-            else if (command == "show") {
-                std::string type;
-                std::cin >> type;
-                productCatalog.viewProductsByType(type);
-            }
-            else if (command == "exit") {
-                break;
-            }
-            else {
-                std::cout << "Invalid command\n";
-            }
-        }
-        else {
-            std::cout << "Invalid role\n";
         }
     }
+};
 
+int main() {
+    MenuHandler menuHandler;
+    menuHandler.run();
     return 0;
 }
